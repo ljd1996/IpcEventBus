@@ -1,5 +1,7 @@
 package com.hearing.eventbusdemo.eventbus;
 
+import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 
 /**
@@ -8,15 +10,15 @@ import androidx.annotation.NonNull;
  */
 // Event包装类，用来IPC转发
 public class EventWrapper {
-    public Event mEvent;
+    public Bundle mBundle;
 
-    public EventWrapper(Event event) {
-        mEvent = event;
+    public EventWrapper(Bundle bundle) {
+        mBundle = bundle;
     }
 
     @NonNull
     @Override
     public String toString() {
-        return mEvent == null ? "null" : mEvent.toString();
+        return mBundle == null ? "null" : mBundle.toString();
     }
 }

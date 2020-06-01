@@ -11,7 +11,6 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
-import com.hearing.eventbusdemo.eventbus.Event;
 import com.hearing.eventbusdemo.eventbus.EventWrapper;
 import com.hearing.eventbusdemo.eventbus.IEventCallback;
 import com.hearing.eventbusdemo.eventbus.IEventInterface;
@@ -43,10 +42,10 @@ public class LocalService extends Service {
         }
 
         @Override
-        public void notify(Event event) throws RemoteException {
+        public void notify(Bundle event) throws RemoteException {
             Log.d(TAG, "LocalService notify: " + event);
             // 主进程收到子进程的事件后，通过EventBus转发给主进程的订阅者
-            MyEventBus.getInstance().postSingle(event);
+            MyEventBus.getInstance().postSingle(MyEventBus.getInstance().unPack(event));
         }
     };
 
@@ -59,7 +58,7 @@ public class LocalService extends Service {
             try {
                 for (int i = 0; i < n; i++) {
                     // 转发给子进程
-                    mRemoteCallbackList.getBroadcastItem(i).notifyEvent(wrapper.mEvent);
+                    mRemoteCallbackList.getBroadcastItem(i).notifyEvent(wrapper.mBundle);
                 }
             } catch (RemoteException e) {
                 e.printStackTrace();
@@ -70,7 +69,13 @@ public class LocalService extends Service {
 
     // 主进程的事件订阅，在接收到主进程的事件后，发给主进程的消息在这里处理，发给子进程的消息在handle方法中转发
     @Subscribe
-    public void onEvent(Event event) {
+    public void onEvent(String event) {
+        Log.d(TAG, "LocalService onEvent: " + event);
+    }
+
+    // 主进程的事件订阅，在接收到主进程的事件后，发给主进程的消息在这里处理，发给子进程的消息在handle方法中转发
+    @Subscribe
+    public void onEvent1(Integer event) {
         Log.d(TAG, "LocalService onEvent: " + event);
     }
 
@@ -83,9 +88,7 @@ public class LocalService extends Service {
             public void run() {
                 Utils.sleep(1000);
                 // 主进程发送事件
-                Bundle bundle = new Bundle();
-                bundle.putString(Utils.KEY, "A message from main process at " + System.currentTimeMillis());
-                MyEventBus.getInstance().post(new Event(bundle));
+                MyEventBus.getInstance().post("A message from main process at " + System.currentTimeMillis());
             }
         }).start();
     }

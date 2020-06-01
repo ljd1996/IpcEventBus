@@ -11,7 +11,6 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
-import com.hearing.eventbusdemo.eventbus.Event;
 import com.hearing.eventbusdemo.eventbus.EventWrapper;
 import com.hearing.eventbusdemo.eventbus.IEventCallback;
 import com.hearing.eventbusdemo.eventbus.IEventInterface;
@@ -32,10 +31,10 @@ public class RemoteService extends Service {
 
     private IEventCallback mEventCallback = new IEventCallback.Stub() {
         @Override
-        public void notifyEvent(Event event) throws RemoteException {
+        public void notifyEvent(Bundle event) throws RemoteException {
             Log.d(TAG, "RemoteService notifyEvent: " + event);
             // 收到主进程的转发后，将事件转发到本进程
-            MyEventBus.getInstance().postSingle(event);
+            MyEventBus.getInstance().postSingle(MyEventBus.getInstance().unPack(event));
         }
     };
 
@@ -71,9 +70,7 @@ public class RemoteService extends Service {
             @Override
             public void run() {
                 Utils.sleep(2000);
-                Bundle bundle = new Bundle();
-                bundle.putString(Utils.KEY, "A message from remote process: " + System.currentTimeMillis());
-                MyEventBus.getInstance().post(new Event(bundle));
+                MyEventBus.getInstance().post(100);
             }
         }).start();
     }
@@ -83,7 +80,7 @@ public class RemoteService extends Service {
     public void handle(EventWrapper wrapper) {
         Log.v(TAG, "RemoteService handle: " + wrapper);
         try {
-            mEventInterface.notify(wrapper.mEvent);
+            mEventInterface.notify(wrapper.mBundle);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -91,7 +88,13 @@ public class RemoteService extends Service {
 
     // 主进程的事件订阅者
     @Subscribe
-    public void onEvent(Event event) {
+    public void onEvent(String event) {
+        Log.d(TAG, "RemoteService onEvent: " + event);
+    }
+
+    // 主进程的事件订阅者
+    @Subscribe
+    public void onEvent1(Integer event) {
         Log.d(TAG, "RemoteService onEvent: " + event);
     }
 

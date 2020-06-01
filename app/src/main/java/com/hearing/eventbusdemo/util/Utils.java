@@ -6,8 +6,6 @@ package com.hearing.eventbusdemo.util;
  */
 public class Utils {
 
-    public static final String KEY = "key";
-
     public static void sleep(int t) {
         try {
             Thread.sleep(t);
